@@ -1,0 +1,251 @@
+
+sda1.nopinsertedat0x53.boot.dat:     file format binary
+
+
+Disassembly of section .data:
+
+00000000 <.data>:
+   0:	eb 52                	jmp    0x54
+   2:	90                   	nop
+   3:	4e                   	dec    %si
+   4:	54                   	push   %sp
+   5:	46                   	inc    %si
+   6:	53                   	push   %bx
+   7:	20 20                	and    %ah,(%bx,%si)
+   9:	20 20                	and    %ah,(%bx,%si)
+   b:	00 02                	add    %al,(%bp,%si)
+   d:	08 00                	or     %al,(%bx,%si)
+   f:	00 00                	add    %al,(%bx,%si)
+  11:	00 00                	add    %al,(%bx,%si)
+  13:	00 00                	add    %al,(%bx,%si)
+  15:	f8                   	clc    
+  16:	00 00                	add    %al,(%bx,%si)
+  18:	3f                   	aas    
+  19:	00 ff                	add    %bh,%bh
+  1b:	00 3f                	add    %bh,(%bx)
+  1d:	00 00                	add    %al,(%bx,%si)
+  1f:	00 00                	add    %al,(%bx,%si)
+  21:	00 00                	add    %al,(%bx,%si)
+  23:	00 80 00 80          	add    %al,-0x8000(%bx,%si)
+  27:	00 1f                	add    %bl,(%bx)
+  29:	1f                   	pop    %ds
+  2a:	80 01 00             	addb   $0x0,(%bx,%di)
+  2d:	00 00                	add    %al,(%bx,%si)
+  2f:	00 00                	add    %al,(%bx,%si)
+  31:	00 0c                	add    %cl,(%si)
+  33:	00 00                	add    %al,(%bx,%si)
+  35:	00 00                	add    %al,(%bx,%si)
+  37:	00 f1                	add    %dh,%cl
+  39:	01 18                	add    %bx,(%bx,%si)
+  3b:	00 00                	add    %al,(%bx,%si)
+  3d:	00 00                	add    %al,(%bx,%si)
+  3f:	00 f6                	add    %dh,%dh
+  41:	00 00                	add    %al,(%bx,%si)
+  43:	00 01                	add    %al,(%bx,%di)
+  45:	00 00                	add    %al,(%bx,%si)
+  47:	00 cc                	add    %cl,%ah
+  49:	f2 fc                	repnz cld 
+  4b:	f4                   	hlt    
+  4c:	32 fd                	xor    %ch,%bh
+  4e:	f4                   	hlt    
+  4f:	38 00                	cmp    %al,(%bx,%si)
+  51:	00 00                	add    %al,(%bx,%si)
+  53:	90                   	nop
+  54:	fa                   	cli    ; clear interrupts while changing stacks
+  55:	33 c0                	xor    %ax,%ax ; set stack sector to zero
+  57:	8e d0                	mov    %ax,%ss ; ...
+  59:	bc 00 7c             	mov    $0x7c00,%sp ; stack pointer to 7c00
+				;(stack directly beneath this bootcode)
+  5c:	fb                   	sti    ; re-enable interrupts
+  5d:	68 c0 07             	push   $0x7c0 ; change data segment to 7c0
+  60:	1f                   	pop    %ds
+  61:	1e                   	push   %ds ; and lret to 7c0:0066
+  62:	68 66 00             	push   $0x66
+  65:	cb                   	lret   
+				; picking up where we just left off...
+  66:	88 16 0e 00          	mov    %dl,0xe ; save boot drive code...
+				; see //wiki.osdev.org/Boot_Sequence
+				; offset 0xe above contains 0 at boot
+  6a:	66 81 3e 03 00 4e 54 	cmpl   $0x5346544e,0x3 ;is there "NTFS" at...
+  71:	46 53			; offset 3? 
+  73:	75 15                	jne    0x8a ; nope, skip ahead
+  75:	b4 41                	mov    $0x41,%ah ; "check extensions present"
+					; see //en.wikipedia.org/wiki/INT_13H
+  77:	bb aa 55             	mov    $0x55aa,%bx ; check if reversed after...
+  7a:	cd 13                	int    $0x13
+  7c:	72 0c                	jb     0x8a ; carry set means extensions found
+  7e:	81 fb 55 aa          	cmp    $0xaa55,%bx ; BX should have AA55 now
+  82:	75 06                	jne    0x8a ; otherwise handle error (?)
+  84:	f7 c1 01 00          	test   $0x1,%cx ; packet access to device
+  88:	75 03                	jne    0x8d ; no, skip jump to 0x15f
+  8a:	e9 d2 00             	jmp    0x15f ; handle packet access
+				; packet is alternative to CHS or LBA,
+				; see //wiki.osdev.org/
+				; ATA_in_X86_RealMode(BIOS)
+				; now we're going to read extended drive
+				; parameters, so we need room on the stack to
+				; store them.
+  8d:	1e                   	push   %ds ; save data segment
+  8e:	83 ec 18             	sub    $0x18,%sp ; clear 24 bytes on the stack
+				; (but 30 (0x1e) are needed?!)
+  91:	68 1a 00             	push   $0x1a ; gets popped into AX later
+  94:	b4 48                	mov    $0x48,%ah ; BIOS query
+  96:	8a 16 0e 00          	mov    0xe,%dl ; restore disk code from stash
+  9a:	8b f4                	mov    %sp,%si ; storage pointer in DS:SI
+  9c:	16                   	push   %ss ; so make DS=SS
+  9d:	1f                   	pop    %ds ; ...
+  9e:	cd 13                	int    $0x13 ; make the call
+  a0:	9f                   	lahf	; store flags in AH temporarily...
+  a1:	83 c4 18             	add    $0x18,%sp  ; restore stack pointer
+				; (discarding the data we just asked for(?!))
+  a4:	9e                   	sahf   	; restore flags
+  a5:	58                   	pop    %ax ; get 0x1a from above
+  a6:	1f                   	pop    %ds ; restore DS
+  a7:	72 e1                	jb     0x8a ; carry set from INT13H, failed
+  a9:	3b 06 0b 00          	cmp    0xb,%ax ; 0xb contains 0x200 at boot
+  ad:	75 db                	jne    0x8a
+  af:	a3 0f 00             	mov    %ax,0xf
+  b2:	c1 2e 0f 00 04       	shrw   $0x4,0xf
+  b7:	1e                   	push   %ds
+  b8:	5a                   	pop    %dx
+  b9:	33 db                	xor    %bx,%bx
+  bb:	b9 00 20             	mov    $0x2000,%cx
+  be:	2b c8                	sub    %ax,%cx
+  c0:	66 ff 06 11 00       	incl   0x11
+  c5:	03 16 0f 00          	add    0xf,%dx
+  c9:	8e c2                	mov    %dx,%es
+  cb:	ff 06 16 00          	incw   0x16
+  cf:	e8 40 00             	call   0x112
+  d2:	2b c8                	sub    %ax,%cx
+  d4:	77 ef                	ja     0xc5
+  d6:	b8 00 bb             	mov    $0xbb00,%ax
+  d9:	cd 1a                	int    $0x1a
+  db:	66 23 c0             	and    %eax,%eax
+  de:	75 2d                	jne    0x10d
+  e0:	66 81 fb 54 43 50 41 	cmp    $0x41504354,%ebx
+  e7:	75 24                	jne    0x10d
+  e9:	81 f9 02 01          	cmp    $0x102,%cx
+  ed:	72 1e                	jb     0x10d
+  ef:	16                   	push   %ss
+  f0:	68 07 bb             	push   $0xbb07
+  f3:	16                   	push   %ss
+  f4:	68 70 0e             	push   $0xe70
+  f7:	16                   	push   %ss
+  f8:	68 09 00             	push   $0x9
+  fb:	66 53                	push   %ebx
+  fd:	66 53                	push   %ebx
+  ff:	66 55                	push   %ebp
+ 101:	16                   	push   %ss
+ 102:	16                   	push   %ss
+ 103:	16                   	push   %ss
+ 104:	68 b8 01             	push   $0x1b8
+ 107:	66 61                	popal  
+ 109:	0e                   	push   %cs
+ 10a:	07                   	pop    %es
+ 10b:	cd 1a                	int    $0x1a
+ 10d:	e9 6a 01             	jmp    0x27a
+ 110:	90                   	nop
+ 111:	90                   	nop
+ 112:	66 60                	pushal 
+ 114:	1e                   	push   %ds
+ 115:	06                   	push   %es
+ 116:	66 a1 11 00          	mov    0x11,%eax
+ 11a:	66 03 06 1c 00       	add    0x1c,%eax
+ 11f:	1e                   	push   %ds
+ 120:	66 68 00 00 00 00    	pushl  $0x0
+ 126:	66 50                	push   %eax
+ 128:	06                   	push   %es
+ 129:	53                   	push   %bx
+ 12a:	68 01 00             	push   $0x1
+ 12d:	68 10 00             	push   $0x10
+ 130:	b4 42                	mov    $0x42,%ah
+ 132:	8a 16 0e 00          	mov    0xe,%dl
+ 136:	16                   	push   %ss
+ 137:	1f                   	pop    %ds
+ 138:	8b f4                	mov    %sp,%si
+ 13a:	cd 13                	int    $0x13
+ 13c:	66 59                	pop    %ecx
+ 13e:	5b                   	pop    %bx
+ 13f:	5a                   	pop    %dx
+ 140:	66 59                	pop    %ecx
+ 142:	66 59                	pop    %ecx
+ 144:	1f                   	pop    %ds
+ 145:	0f 82 16 00          	jb     0x15f
+ 149:	66 ff 06 11 00       	incl   0x11
+ 14e:	03 16 0f 00          	add    0xf,%dx
+ 152:	8e c2                	mov    %dx,%es
+ 154:	ff 0e 16 00          	decw   0x16
+ 158:	75 bc                	jne    0x116
+ 15a:	07                   	pop    %es
+ 15b:	1f                   	pop    %ds
+ 15c:	66 61                	popal  
+ 15e:	c3                   	ret    
+ 15f:	a0 f8 01             	mov    0x1f8,%al
+ 162:	e8 08 00             	call   0x16d
+ 165:	a0 fb 01             	mov    0x1fb,%al
+ 168:	e8 02 00             	call   0x16d
+ 16b:	eb fe                	jmp    0x16b
+ 16d:	b4 01                	mov    $0x1,%ah
+ 16f:	8b f0                	mov    %ax,%si
+ 171:	ac                   	lods   %ds:(%si),%al
+ 172:	3c 00                	cmp    $0x0,%al
+ 174:	74 09                	je     0x17f
+ 176:	b4 0e                	mov    $0xe,%ah
+ 178:	bb 07 00             	mov    $0x7,%bx
+ 17b:	cd 10                	int    $0x10
+ 17d:	eb f2                	jmp    0x171
+ 17f:	c3                   	ret    
+ 180:	0d 0a 41             	or     $0x410a,%ax
+ 183:	20 64 69             	and    %ah,0x69(%si)
+ 186:	73 6b                	jae    0x1f3
+ 188:	20 72 65             	and    %dh,0x65(%bp,%si)
+ 18b:	61                   	popa   
+ 18c:	64 20 65 72          	and    %ah,%fs:0x72(%di)
+ 190:	72 6f                	jb     0x201
+ 192:	72 20                	jb     0x1b4
+ 194:	6f                   	outsw  %ds:(%si),(%dx)
+ 195:	63 63 75             	arpl   %sp,0x75(%bp,%di)
+ 198:	72 72                	jb     0x20c
+ 19a:	65 64 00 0d          	add    %cl,%fs:%gs:(%di)
+ 19e:	0a 42 4f             	or     0x4f(%bp,%si),%al
+ 1a1:	4f                   	dec    %di
+ 1a2:	54                   	push   %sp
+ 1a3:	4d                   	dec    %bp
+ 1a4:	47                   	inc    %di
+ 1a5:	52                   	push   %dx
+ 1a6:	20 69 73             	and    %ch,0x73(%bx,%di)
+ 1a9:	20 6d 69             	and    %ch,0x69(%di)
+ 1ac:	73 73                	jae    0x221
+ 1ae:	69 6e 67 00 0d       	imul   $0xd00,0x67(%bp),%bp
+ 1b3:	0a 42 4f             	or     0x4f(%bp,%si),%al
+ 1b6:	4f                   	dec    %di
+ 1b7:	54                   	push   %sp
+ 1b8:	4d                   	dec    %bp
+ 1b9:	47                   	inc    %di
+ 1ba:	52                   	push   %dx
+ 1bb:	20 69 73             	and    %ch,0x73(%bx,%di)
+ 1be:	20 63 6f             	and    %ah,0x6f(%bp,%di)
+ 1c1:	6d                   	insw   (%dx),%es:(%di)
+ 1c2:	70 72                	jo     0x236
+ 1c4:	65                   	gs
+ 1c5:	73 73                	jae    0x23a
+ 1c7:	65 64 00 0d          	add    %cl,%fs:%gs:(%di)
+ 1cb:	0a 50 72             	or     0x72(%bx,%si),%dl
+ 1ce:	65                   	gs
+ 1cf:	73 73                	jae    0x244
+ 1d1:	20 43 74             	and    %al,0x74(%bp,%di)
+ 1d4:	72 6c                	jb     0x242
+ 1d6:	2b 41 6c             	sub    0x6c(%bx,%di),%ax
+ 1d9:	74 2b                	je     0x206
+ 1db:	44                   	inc    %sp
+ 1dc:	65                   	gs
+ 1dd:	6c                   	insb   (%dx),%es:(%di)
+ 1de:	20 74 6f             	and    %dh,0x6f(%si)
+ 1e1:	20 72 65             	and    %dh,0x65(%bp,%si)
+ 1e4:	73 74                	jae    0x25a
+ 1e6:	61                   	popa   
+ 1e7:	72 74                	jb     0x25d
+ 1e9:	0d 0a 00             	or     $0xa,%ax
+	...
+ 1f8:	80 9d b2 ca 00       	sbbb   $0x0,-0x354e(%di)
+ 1fd:	00 55 aa             	add    %dl,-0x56(%di)
