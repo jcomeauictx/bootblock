@@ -17,6 +17,6 @@ text and other data as instructions; if the jump address falls in the middle
 of one of these, you need to insert a "nop" in front of it.
 
 you do this with xxd. first xxd sdb1.boot.dat sdb1.boot.xxd. Then you edit
-the hexadecimal and change 00 (or whatever it happens to be) to 93, hexadecimal
+the hexadecimal and change 00 (or whatever it happens to be) to 90, hexadecimal
 for `nop`. now you `xxd -r sdb1.boot.xxd sdb1.nopinserted.boot.dat`. then you
 can disassemble it more or less correctly.
