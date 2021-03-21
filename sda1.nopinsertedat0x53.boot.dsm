@@ -5,12 +5,14 @@ sda1.nopinsertedat0x53.boot.dat:     file format binary
 Disassembly of section .data:
 
 00000000 <.data>:
+reset:
    0:	eb 52                	jmp    0x54
    2:	90                   	nop
-   3:	4e                   	dec    %si
-   4:	54                   	push   %sp
-   5:	46                   	inc    %si
-   6:	53                   	push   %bx
+ntfs:				.ascii "NTFS"
+#  3:	4e                   	dec    %si
+#  4:	54                   	push   %sp
+#  5:	46                   	inc    %si
+#  6:	53                   	push   %bx
    7:	20 20                	and    %ah,(%bx,%si)
    9:	20 20                	and    %ah,(%bx,%si)
    b:	00 02                	add    %al,(%bp,%si)
@@ -66,7 +68,7 @@ Disassembly of section .data:
   66:	88 16 0e 00          	mov    %dl,0xe ; save boot drive code...
 				; see //wiki.osdev.org/Boot_Sequence
 				; offset 0xe above contains 0 at boot
-  6a:	66 81 3e 03 00 4e 54 	cmpl   $0x5346544e,0x3 ;is there "NTFS" at...
+  6a:	66 81 3e 03 00 4e 54 	cmpl   $0x5346544e,ntfs ;is there "NTFS" at...
   71:	46 53			; offset 3? 
   73:	75 15                	jne    0x8a ; nope, skip ahead
   75:	b4 41                	mov    $0x41,%ah ; "check extensions present"
