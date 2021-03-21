@@ -4,9 +4,12 @@ information and scripts for creating and modifying bootblocks
 
 notes from memory in no particular order:
 
-fetch the bootblock from the disk partition: dd if=/dev/sdb1 bs=512 count=1 of=sdb1.boot.dat
+fetch the bootblock from the disk partition:
+`dd if=/dev/sdb1 bs=512 count=1 of=sdb1.boot.dat`
 
-attempt disassembly: objdump --disassemble-all > sdb1.boot.dat > sdb1.boot.dsm
+attempt disassembly:
+`objdump --disassemble-all --target=binary --architecture=i386 > \
+sdb1.boot.dat > sdb1.boot.dsm`
 
 you may find that the first "jmp" goes to an address that the disassembly
 doesn't show, because objdump's disassembler isn't that smart and it takes
