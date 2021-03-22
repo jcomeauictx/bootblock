@@ -20,3 +20,6 @@ you do this with xxd. first xxd sdb1.boot.dat sdb1.boot.xxd. Then you edit
 the hexadecimal and change 00 (or whatever it happens to be) to 90, hexadecimal
 for `nop`. now you `xxd -r sdb1.boot.xxd sdb1.nopinserted.boot.dat`. then you
 can disassemble it more or less correctly.
+
+with the Bochs emulator you can step through the code and see what it's doing.
+first make a floppy image using `bximage`.
