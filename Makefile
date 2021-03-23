@@ -1,4 +1,4 @@
-all: eisa.bochs
+all: fd13live.bochs
 %.fd0: %.dat
 	# tried using bximage but it always prompts for input even with -q
 	# NOTE: floppies made this way won't boot. DO NOT USE.
@@ -6,6 +6,8 @@ all: eisa.bochs
 	dd if=/dev/zero of=$@ bs=1024 count=1440
 	dd if=$< of=$@ conv=notrunc
 %.bochs: %.bxrc %.dat
+	bochs -f $< -q
+%.bochs: %.bxrc %.iso
 	bochs -f $< -q
 buster64.dat: /dev/sda3
 	ln -sf $< $@
