@@ -1,8 +1,9 @@
-megs: 32
+megs: 256
 vga: extension=vbe
 romimage: file=$BXSHARE/BIOS-bochs-latest
 vgaromimage: file=$BXSHARE/VGABIOS-lgpl-latest
-cpu: count=1, ips=1000000000, reset_on_triple_fault=1
+cpu: count=1, reset_on_triple_fault=1
+#cpu: count=1, ips=10000000000, reset_on_triple_fault=1
 ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
 ata0-slave: type=cdrom, path=fd13live.iso, status=inserted
 boot: cdrom
