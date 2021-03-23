@@ -13,6 +13,8 @@ buster64.dat: /dev/sda3
 	ln -sf $< $@
 eisa.dat: /dev/sda1
 	ln -sf $< $@
+%.fd0.qemu: %.dat
+	qemu-system-x86_64 -snapshot -fda $<
 %.qemu: %.dat
 	qemu-system-x86_64 -snapshot -hda $<
 %.qemu: %.iso
