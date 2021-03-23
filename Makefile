@@ -15,3 +15,5 @@ eisa.dat: /dev/sda1
 	ln -sf $< $@
 %.qemu: %.dat
 	qemu-system-x86_64 -snapshot -hda $<
+%.qemu: %.iso
+	qemu-system-x86_64 -cdrom $<
