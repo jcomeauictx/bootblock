@@ -1,4 +1,6 @@
-all: fd13live.bochs
+# allow bashisms in Makefile recipes
+SHELL := /bin/bash
+all: extlinux.nopinsertedat*.boot.dsm fd13live.bochs
 %.fd0: %.dat
 	# tried using bximage but it always prompts for input even with -q
 	# NOTE: floppies made this way won't boot. DO NOT USE.
@@ -9,6 +11,8 @@ all: fd13live.bochs
 	bochs -f $< -q
 %.bochs: %.bxrc %.iso
 	bochs -f $< -q
+%.bochs: iso.bxrc %.iso
+	PREFIX=$* bochs -f $< -q
 %.bochs: %.bxrc %.fd0
 	bochs -f $< -q
 buster64.dat: /dev/sda3
@@ -32,3 +36,7 @@ eisa.dat: /dev/sda1
 	 --architecture=i386 \
 	 --disassembler-options=addr16,data16 \
 	 $< > $@
+%.nopinsertedat*.boot.dat: %.boot.dsm
+	offset=$$(sed -n 's/^\s*0:.*\<jmp\>\s\+\(\S\+\)$$/\1/p' $<) && \
+	 cp $*.boot.dat $*.nopinsertedat$$offset.boot.dat && \
+	 ./insert_nop_at.sh $$offset $*.nopinsertedat$$offset.boot.dat
