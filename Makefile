@@ -26,3 +26,9 @@ eisa.dat: /dev/sda1
 %.dat:	%.s Makefile
 	as -o $*.o $<
 	objcopy --output-target binary $*.o $@
+%.dsm: %.dat
+	objdump --disassemble-all \
+	 --target=binary \
+	 --architecture=i386 \
+	 --disassembler-options=addr16,data16 \
+	 $< > $@
