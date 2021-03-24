@@ -9,13 +9,20 @@ all: fd13live.bochs
 	bochs -f $< -q
 %.bochs: %.bxrc %.iso
 	bochs -f $< -q
+%.bochs: %.bxrc %.fd0
+	bochs -f $< -q
 buster64.dat: /dev/sda3
 	ln -sf $< $@
 eisa.dat: /dev/sda1
 	ln -sf $< $@
+%.qemu: %.fd0
+	qemu-system-x86_64 -snapshot -fda $<
 %.fd0.qemu: %.dat
 	qemu-system-x86_64 -snapshot -fda $<
 %.qemu: %.dat
 	qemu-system-x86_64 -snapshot -hda $<
 %.qemu: %.iso
 	qemu-system-x86_64 -cdrom $<
+%.dat:	%.s Makefile
+	as -o $*.o $<
+	objcopy --output-target binary $*.o $@

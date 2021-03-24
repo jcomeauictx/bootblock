@@ -1,10 +1,11 @@
 # stupid "operating system" that does nothing but repeat back what you type.
-	.org 0x7c00
+	.code16
+	.org 0
 	mov %cs, %ax
 	mov %ax, %ds
 	mov %ax, %es
 	call okay
-	jmp .
+	hlt
 okay:
 	mov okstring, %bp
 	mov $0x1301, %ax
@@ -15,5 +16,5 @@ okay:
 	ret
 okstring:
 	.ascii "ok\r\n"
-	.org 0x7dfe
+	.org 0x1fe
 	.word 0xaa55
