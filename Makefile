@@ -31,11 +31,12 @@ eisa.dat: /dev/sda1
 	as -o $*.o $<
 	objcopy --output-target binary $*.o $@
 %.dsm: %.dat
+	@echo Disassembling $< >&2
 	objdump --disassemble-all \
 	 --target=binary \
 	 --architecture=i386 \
 	 --disassembler-options=addr16,data16 \
-	 $< > $@
+	 $< > $(<:.dat=.dsm)
 %.nopinsertedat*.boot.dat: %.boot.dsm
 	offset=$$(sed -n 's/^\s*0:.*\<jmp\>\s\+\(\S\+\)$$/\1/p' $<) && \
 	 cp $*.boot.dat $*.nopinsertedat$$offset.boot.dat && \
