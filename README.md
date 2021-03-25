@@ -23,3 +23,8 @@ can disassemble it more or less correctly.
 
 with the Bochs emulator you can step through the code and see what it's doing.
 first make a floppy image using `bximage`.
+
+tried to set up dual boot Linux on Vista using instructions at
+<https://wiki.archlinux.org/index.php/Dual_boot_with_Windows>, but so far no
+luck. I tried to give bcdedit the correct device, too, but it wouldn't accept
+it.
