@@ -1,6 +1,6 @@
 # allow bashisms in Makefile recipes
 SHELL := /bin/bash
-all: extlinux.nopinsertedat*.boot.dsm #fd13live.bochs
+all: extlinux.nopinsertedat*.boot.dsm zero.dat.bootable #fd13live.bochs
 %.fd0: %.dat
 	# tried using bximage but it always prompts for input even with -q
 	# NOTE: floppies made this way won't boot, unless all needed code
@@ -13,6 +13,8 @@ all: extlinux.nopinsertedat*.boot.dsm #fd13live.bochs
 %.bochs: %.bxrc %.iso
 	bochs -f $< -q
 %.bochs: iso.bxrc %.iso
+	PREFIX=$* bochs -f $< -q
+%.bochs: hda.bxrc %
 	PREFIX=$* bochs -f $< -q
 %.bochs: %.bxrc %.fd0
 	bochs -f $< -q
@@ -52,4 +54,11 @@ eisa.dat: /dev/sda1
 	 else \
 	  echo No NOP needed at offset $$offset >&2; \
 	 fi
+bootsig.dat: sda1.boot.dat
+	dd if=$< bs=1 count=2 skip=510 of=$@
+%.bootable: % bootsig.dat mbr.bin
+	dd if=mbr.bin of=$< conv=notrunc
+	dd if=bootsig.dat bs=1 of=$< seek=510 conv=notrunc
+zero.dat:
+	dd if=/dev/zero of=$@ bs=$$((1024 * 1024)) count=30
 .PRECIOUS: *.dat *.dsm
