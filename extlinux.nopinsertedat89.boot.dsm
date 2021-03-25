@@ -36,6 +36,12 @@ Disassembly of section .data:
   65:	57                   	push   %di
   66:	8e c1                	mov    %cx,%es
   68:	b1 26                	mov    $0x26,%cl
+# DS:SI = points to the 16-byte MBR partition table entry 
+# (in the relocated MBR) corresponding with the activated VBR.
+# https://en.wikipedia.org/wiki/Master_boot_record
+# HOWEVER this will not work on Windows Vista because it disallows non-Windows
+# partitions to be added using bcdedit. So this partition table entry will be
+# pointing to drive C instead of the Linux partition.
   6a:	bf 78 7b             	mov    $0x7b78,%di
   6d:	f3 a5                	rep movsw %ds:(%si),%es:(%di)
   6f:	8e d9                	mov    %cx,%ds
