@@ -12,15 +12,19 @@ Disassembly of section .data:
    8:	4c                   	dec    %sp
    9:	4f                   	dec    %di
    a:	18 02                	sbb    %al,(%bp,%si)
-   c:	21 af 5e 60          	and    %bp,0x605e(%bx)
+   c:	78 dc                	js     0xffffffea
+   e:	61                   	popa   
+   f:	60                   	pusha  
   10:	00 00                	add    %al,(%bx,%si)
   12:	00 00                	add    %al,(%bx,%si)
   14:	bf fd 5d             	mov    $0x5dfd,%di
   17:	60                   	pusha  
   18:	a9 fc a1             	test   $0xa1fc,%ax
-  1b:	18 01                	sbb    %al,(%bx,%di)
-  1d:	00 80 60 a7          	add    %al,-0x58a0(%bx,%si)
-  21:	da 7c 14             	fidivrl 0x14(%si)
+  1b:	18 81 00 80          	sbb    %al,-0x8000(%bx,%di)
+  1f:	60                   	pusha  
+  20:	9f                   	lahf   
+  21:	06                   	push   %es
+  22:	7c 1b                	jl     0x3f
   24:	b8 c0 07             	mov    $0x7c0,%ax
   27:	8e d0                	mov    %ax,%ss
   29:	bc 00 08             	mov    $0x800,%sp
