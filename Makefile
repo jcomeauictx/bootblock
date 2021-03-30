@@ -61,6 +61,6 @@ bootsig.dat: sda1.boot.dat
 	dd if=bootsig.dat bs=1 of=$< seek=510 conv=notrunc
 zero.dat:
 	dd if=/dev/zero of=$@ bs=$$((1024 * 1024)) count=30
-cf:	cf2010.dat  # boot colorforth 2010
-	qemu-system-x86_64 -fda $<
+cf:	cf2019.dat  # boot colorforth 2019
+	qemu-system-i386 -fda $<
 .PRECIOUS: *.dat *.dsm
