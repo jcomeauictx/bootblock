@@ -3,10 +3,12 @@ sda3.boot.dat:     file format binary
 
 
 Disassembly of section .data:
-
+# Running lilo changes the 4 bytes starting offset 0xc,
+# and the 8 bytes starting offset 0x1c.
 00000000 <.data>:
+reset:
    0:	fa                   	cli    
-   1:	eb 21                	jmp    0x24
+   1:	eb 21                	jmp    bootstart  # 0x24
    3:	01 b4 01 4c          	add    %si,0x4c01(%si)
    7:	49                   	dec    %cx
    8:	4c                   	dec    %sp
@@ -25,10 +27,12 @@ Disassembly of section .data:
   20:	9f                   	lahf   
   21:	06                   	push   %es
   22:	7c 1b                	jl     0x3f
-  24:	b8 c0 07             	mov    $0x7c0,%ax
-  27:	8e d0                	mov    %ax,%ss
-  29:	bc 00 08             	mov    $0x800,%sp
-  2c:	fb                   	sti    
+# actual code starts here
+bootstart:
+  24:	b8 c0 07             	mov    $0x7c0,%ax  # make room for stack...
+  27:	8e d0                	mov    %ax,%ss  # about 1500 bytes...
+  29:	bc 00 08             	mov    $0x800,%sp  # past end of this bootblock
+  2c:	fb                   	sti    # reenable interrupts
   2d:	52                   	push   %dx
   2e:	53                   	push   %bx
   2f:	06                   	push   %es
@@ -38,21 +42,22 @@ Disassembly of section .data:
   34:	31 ed                	xor    %bp,%bp
   36:	60                   	pusha  
   37:	b8 00 12             	mov    $0x1200,%ax
-  3a:	b3 36                	mov    $0x36,%bl
-  3c:	cd 10                	int    $0x10
-  3e:	61                   	popa   
-  3f:	b0 0d                	mov    $0xd,%al
-  41:	e8 66 01             	call   0x1aa
-  44:	b0 0a                	mov    $0xa,%al
-  46:	e8 61 01             	call   0x1aa
-  49:	b0 4c                	mov    $0x4c,%al
-  4b:	e8 5c 01             	call   0x1aa
+# http://www2.ift.ulaval.ca/~marchand/ift17583/dosints.pdf
+  3a:	b3 36                	mov    $0x36,%bl  # video refresh control
+  3c:	cd 10                	int    $0x10  # al=0, enables refresh
+  3e:	61                   	popa   # returns al=12h if supported, but...
+  3f:	b0 0d                	mov    $0xd,%al  # we just ignore it.
+  41:	e8 66 01             	call   outchr  # send 0xd (CR) to screen
+  44:	b0 0a                	mov    $0xa,%al  # LF, linefeed
+  46:	e8 61 01             	call   outchr
+  49:	b0 4c                	mov    $0x4c,%al  # 'L'
+  4b:	e8 5c 01             	call   outchr
   4e:	60                   	pusha  
   4f:	1e                   	push   %ds
   50:	07                   	pop    %es
-  51:	80 fa fe             	cmp    $0xfe,%dl
+  51:	80 fa fe             	cmp    $0xfe,%dl  # highest possible hard drive
   54:	75 02                	jne    0x58
-  56:	88 f2                	mov    %dh,%dl
+  56:	88 f2                	mov    %dh,%dl  # zero DL, making it floppy(?)
   58:	bb 00 02             	mov    $0x200,%bx
   5b:	8a 76 1e             	mov    0x1e(%bp),%dh
   5e:	89 d0                	mov    %dx,%ax
@@ -217,11 +222,12 @@ Disassembly of section .data:
  1a5:	27                   	daa    
  1a6:	04 f0                	add    $0xf0,%al
  1a8:	14 40                	adc    $0x40,%al
- 1aa:	60                   	pusha  
- 1ab:	bb 07 00             	mov    $0x7,%bx
- 1ae:	b4 0e                	mov    $0xe,%ah
- 1b0:	cd 10                	int    $0x10
- 1b2:	61                   	popa   
+outchr:
+ 1aa:	60                   	pusha  # save registers
+ 1ab:	bb 07 00             	mov    $0x7,%bx  # page 0, color white
+ 1ae:	b4 0e                	mov    $0xe,%ah  # character to screen
+ 1b0:	cd 10                	int    $0x10  # BIOS interrupt
+ 1b2:	61                   	popa   # restore registers
  1b3:	c3                   	ret    
  1b4:	00 00                	add    %al,(%bx,%si)
  1b6:	c0 74 09 b4          	shlb   $0xb4,0x9(%si)
