@@ -3,12 +3,16 @@ sda3.boot.dat:     file format binary
 
 
 Disassembly of section .data:
+# https://en.wikipedia.org/wiki/Master_boot_record
 # Running lilo changes the 4 bytes starting offset 0xc,
 # and the 8 bytes starting offset 0x1c.
 00000000 <.data>:
 reset:
    0:	fa                   	cli    
    1:	eb 21                	jmp    bootstart  # 0x24
+# .byte 1
+# .word 0x1b4  # pointer to some kind of data
+# .ascii "LILO"  # 0x4c, 0x49, 0x4c, 0x4f
    3:	01 b4 01 4c          	add    %si,0x4c01(%si)
    7:	49                   	dec    %cx
    8:	4c                   	dec    %sp
@@ -94,7 +98,7 @@ bootstart:
   a3:	be 20 00             	mov    $0x20,%si
   a6:	e8 df 00             	call   0x188
   a9:	b4 99                	mov    $0x99,%ah
-  ab:	66 81 7f fc 4c 49 4c 	cmpl   $0x4f4c494c,-0x4(%bx)
+  ab:	66 81 7f fc 4c 49 4c 	cmpl   $0x4f4c494c,-0x4(%bx)  # "LILO"?
   b2:	4f 
   b3:	75 29                	jne    0xde
   b5:	5e                   	pop    %si
@@ -114,12 +118,12 @@ bootstart:
   d2:	75 0a                	jne    0xde
   d4:	06                   	push   %es
   d5:	55                   	push   %bp
-  d6:	b0 49                	mov    $0x49,%al
-  d8:	e8 cf 00             	call   0x1aa
+  d6:	b0 49                	mov    $0x49,%al  # "I"
+  d8:	e8 cf 00             	call   outchr
   db:	cb                   	lret   
   dc:	b4 40                	mov    $0x40,%ah
-  de:	b0 20                	mov    $0x20,%al
-  e0:	e8 c7 00             	call   0x1aa
+  de:	b0 20                	mov    $0x20,%al  # " ", space
+  e0:	e8 c7 00             	call   outchr
   e3:	e8 b4 00             	call   0x19a
   e6:	fe 4e 00             	decb   0x0(%bp)
   e9:	74 07                	je     0xf2
@@ -240,13 +244,17 @@ outchr:
  1c5:	8a 16 74 7b          	mov    0x7b74,%dl
  1c9:	cd 13                	int    $0x13
  1cb:	c3                   	ret    
- 1cc:	42                   	inc    %dx
- 1cd:	6f                   	outsw  %ds:(%si),(%dx)
- 1ce:	6f                   	outsw  %ds:(%si),(%dx)
- 1cf:	74 20                	je     0x1f1
- 1d1:	65 72 72             	gs jb  0x246
- 1d4:	6f                   	outsw  %ds:(%si),(%dx)
- 1d5:	72 0d                	jb     0x1e4
- 1d7:	0a 00                	or     (%bx,%si),%al
-	...
- 1fd:	00 55 aa             	add    %dl,-0x56(%di)
+booterror:
+	.asciz "Boot error\r\n"
+#1cc:	42                   	inc    %dx
+#1cd:	6f                   	outsw  %ds:(%si),(%dx)
+#1ce:	6f                   	outsw  %ds:(%si),(%dx)
+#1cf:	74 20                	je     0x1f1
+#1d1:	65 72 72             	gs jb  0x246
+#1d4:	6f                   	outsw  %ds:(%si),(%dx)
+#1d5:	72 0d                	jb     0x1e4
+#1d7:	0a 00                	or     (%bx,%si),%al
+#	...
+#1fd:	00 55 aa             	add    %dl,-0x56(%di)
+	.org 0x1fe
+	.word 0xaa55
