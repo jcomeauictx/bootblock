@@ -147,25 +147,27 @@ bootstart:
  108:	f6 c6 20             	test   $0x20,%dh
  10b:	74 14                	je     0x121
  10d:	bb aa 55             	mov    $0x55aa,%bx
- 110:	b4 41                	mov    $0x41,%ah
- 112:	cd 13                	int    $0x13
- 114:	72 0b                	jb     0x121
- 116:	81 fb 55 aa          	cmp    $0xaa55,%bx
- 11a:	75 05                	jne    0x121
- 11c:	f6 c1 01             	test   $0x1,%cl
- 11f:	75 41                	jne    0x162
+# https://en.wikipedia.org/wiki/INT_13H
+ 110:	b4 41                	mov    $0x41,%ah  # check extensions present
+ 112:	cd 13                	int    $0x13  # BIOS interrupt
+ 114:	72 0b                	jb     0x121  # jump on error
+ 116:	81 fb 55 aa          	cmp    $0xaa55,%bx  # will be on success
+ 11a:	75 05                	jne    0x121  # jump on error
+ 11c:	f6 c1 01             	test   $0x1,%cl  # packet access enabled
+ 11f:	75 41                	jne    0x162  # jump if not
+# jumped to here if error occurred in extensions present BIOS call
  121:	52                   	push   %dx
  122:	06                   	push   %es
- 123:	b4 08                	mov    $0x8,%ah
- 125:	cd 13                	int    $0x13
+ 123:	b4 08                	mov    $0x8,%ah  # read drive parameters
+ 125:	cd 13                	int    $0x13  # BIOS interrupt
  127:	07                   	pop    %es
- 128:	72 b4                	jb     0xde
+ 128:	72 b4                	jb     0xde  # jump on error
  12a:	51                   	push   %cx
- 12b:	c0 e9 06             	shr    $0x6,%cl
- 12e:	86 e9                	xchg   %ch,%cl
- 130:	89 cf                	mov    %cx,%di
- 132:	59                   	pop    %cx
- 133:	c1 ea 08             	shr    $0x8,%dx
+ 12b:	c0 e9 06             	shr    $0x6,%cl  # high bits of cylinder index
+ 12e:	86 e9                	xchg   %ch,%cl  # now ECX contains index
+ 130:	89 cf                	mov    %cx,%di  # place it into DI...
+ 132:	59                   	pop    %cx  # and restore CX
+ 133:	c1 ea 08             	shr    $0x8,%dx  # move DH into DL, zero DH
  136:	92                   	xchg   %ax,%dx
  137:	40                   	inc    %ax
  138:	49                   	dec    %cx
@@ -190,7 +192,7 @@ bootstart:
  15d:	5a                   	pop    %dx
  15e:	88 c6                	mov    %al,%dh
  160:	eb 1c                	jmp    0x17e
- 162:	b4 42                	mov    $0x42,%ah
+ 162:	b4 42                	mov    $0x42,%ah  # extended read sectors
  164:	5b                   	pop    %bx
  165:	bd 05 00             	mov    $0x5,%bp
  168:	60                   	pusha  
