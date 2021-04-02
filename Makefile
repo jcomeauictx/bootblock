@@ -59,8 +59,9 @@ bootsig.dat: sda1.boot.dat
 %.bootable: % bootsig.dat mbr.bin
 	dd if=mbr.bin of=$< conv=notrunc
 	dd if=bootsig.dat bs=1 of=$< seek=510 conv=notrunc
+	ln -sf $< $@
 zero.dat:
 	dd if=/dev/zero of=$@ bs=$$((1024 * 1024)) count=30
 cf:	cf2019.dat  # boot colorforth 2019
 	qemu-system-i386 -fda $<
-.PRECIOUS: *.dat *.dsm
+.PRECIOUS: *.dat
