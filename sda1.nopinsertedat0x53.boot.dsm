@@ -52,7 +52,9 @@ ntfs:				.ascii "NTFS"
   4e:	f4                   	hlt    
   4f:	38 00                	cmp    %al,(%bx,%si)
   51:	00 00                	add    %al,(%bx,%si)
-  53:	90                   	nop
+; 53:	90                   	nop    ; this was 00, part of 4-byte checksum
+; we only turned it into a nop (90h) so it would disassemble properly
+                                .byte 0
   54:	fa                   	cli    ; clear interrupts while changing stacks
   55:	33 c0                	xor    %ax,%ax ; set stack sector to zero
   57:	8e d0                	mov    %ax,%ss ; ...
